@@ -16,12 +16,13 @@ export default class WretchFactory {
         this.entityManager = entityManager;
     }
     
-    create() {
+    create(at = Vec()) {
         const entity = new Entity();
         const type = new TypeComponent(entity, "wretch");
-        const worldPosition = new WorldPositionComponent(entity);
+        const worldPosition = new WorldPositionComponent(entity, at);
         const dilsprite = new DilspriteComponent(entity, this._makeDilsprite(entity));
         const selectable = new SelectableComponent(entity);
+        
         this.entityManager.addComponent(worldPosition);
         this.entityManager.addComponent(dilsprite);
         this.entityManager.addComponent(type);
