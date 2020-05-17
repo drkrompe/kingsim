@@ -1,24 +1,24 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import * as THREE from 'three';
+import BaseRenderer from './components/baserenderer/BaseRenderer';
+import RendererService from './services/RendererService';
+import CameraService from './services/CameraService';
+import SceneService from './services/SceneService';
+import DemoWretch from './components/demo-wretch/DemoWretch';
 
 function App() {
+
+  SceneService.scene.background = new THREE.Color(0x68a357)
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <DemoWretch
+        renderer={RendererService.renderer}
+        camera={CameraService.camera}
+        scene={SceneService.scene}
+        updateFunction={null}
+        updateFunctions={[]}
+      />
     </div>
   );
 }
