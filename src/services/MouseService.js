@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import CameraService from './CameraService';
-import { Camera } from 'three';
 import SceneService from './SceneService';
 
 const raycaster = new THREE.Raycaster();

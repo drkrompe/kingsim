@@ -8,6 +8,5 @@ export default class DilspriteComponent extends Component {
         this.dilsprite = dilsprite;
         this.dilsprite.self = entity;
         SceneService.scene.add(this.dilsprite)
-        console.log(this.dilsprite)
     }
 }

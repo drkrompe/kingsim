@@ -1,6 +1,5 @@
 import React from 'react';
 import * as THREE from 'three';
-import BaseRenderer from './components/baserenderer/BaseRenderer';
 import RendererService from './services/RendererService';
 import CameraService from './services/CameraService';
 import SceneService from './services/SceneService';

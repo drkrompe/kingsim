@@ -7,18 +7,24 @@ import AnimateDilspriteSystem from '../../kingsim/systems/AnimateDilspriteSystem
 import FoodFactory from '../../kingsim/entities/FoodFactory';
 import EntityManagerService from '../../services/EntityManagerService';
 import Vec from '../../utils/Vec';
-import MoveDilspriteToWorldLocationService from '../../kingsim/systems/MoveDilspriteToWorldLocationService';
+import MoveDilspriteToKinematicSystem from '../../kingsim/systems/MoveDilspriteToKinematicSystem';
+import KinematicUpdateSystem from '../../kingsim/systems/kinematicupdate/KinematicUpdateSystem';
+import ArriveSystem from '../../kingsim/systems/steering/ArriveSystem';
 
 export default class DemoWretch extends React.Component {
 
     componentDidMount() {
         this.clock = new THREE.Clock();
-        new WretchFactory(EntityManagerSystem).create();
-        new FoodFactory(EntityManagerService).create(Vec(-1, 0));
+        const foodEntity = new FoodFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerSystem).create(Vec(1, 0), foodEntity.id);
+        
         this.systems = [
             new AnimateDilspriteSystem(EntityManagerSystem),
-            new MoveDilspriteToWorldLocationService(EntityManagerService)
+            new KinematicUpdateSystem(EntityManagerService),
+            new MoveDilspriteToKinematicSystem(EntityManagerService),
+            new ArriveSystem(EntityManagerService)
         ];
+
         this.props.updateFunctions.push(this.onTick);
     }
 
