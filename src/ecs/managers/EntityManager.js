@@ -1,7 +1,7 @@
 import Component from "../components/Component"
 
 export default class EntityManager {
-    
+
     constructor() {
         this.typeToComponents = new Map()
     }
@@ -10,22 +10,37 @@ export default class EntityManager {
         return this.typeToComponents.get(type)
     }
 
-    addComponent(component = new Component()) {
-        let componentGroup = this.typeToComponents.get(component.type);
-        if (!componentGroup) {
-            componentGroup = []
-            this.typeToComponents.set(component.type, componentGroup);
+    getComponent(type = "", eid = "") {
+        const compMap = this.typeToComponents.get(type);
+        if (compMap !== null) {
+            return compMap.get(eid);
         }
-        componentGroup.push(component);
+    }
+
+    addComponent(component = new Component()) {
+        let componentGroupMap = this.typeToComponents.get(component.type);
+        if (componentGroupMap === undefined) {
+            componentGroupMap = new Map();
+            this.typeToComponents.set(component.type, componentGroupMap);
+        }
+        componentGroupMap.set(component.id, component);
     }
 
     removeComponent(component = new Component()) {
-        const list = this.typeToComponents.get(component.type);
-        for (let i = 0; i < list.length; i++){
-            if (list[i] === component) {
-                list.splice(i, 1);
-                break;
-            }
+        const subComponentMap = this.typeToComponents.get(component.type);
+        subComponentMap.delete(component.id);
+    }
+
+    removeEntityComponent(type = "", eid = "") {
+        const compMap = this.typeToComponents.get(type);
+        if (compMap !== null) {
+            compMap.delete(eid);
         }
+    }
+
+    removeAllEntityComponents(eid = "") {
+        this.typeToComponents.forEach(compMap => {
+            compMap.delete(eid);
+        });
     }
 }
