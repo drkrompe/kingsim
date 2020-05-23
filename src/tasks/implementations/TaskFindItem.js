@@ -1,8 +1,11 @@
 import Task from "../Task";
+import { Query } from "../../querys/QueryExecutor";
 
 export default class TaskFindItem extends Task {
-    constructor(parent, item) {
+    constructor(parent, query = new Query()) {
         super(parent);
-        this.item = item;
+        this.taskData = {
+            query: query
+        };
     }
 }

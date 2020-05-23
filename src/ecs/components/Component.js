@@ -3,4 +3,8 @@ export default class Component {
         this.id = entityId;
         this.type = type;
     }
+
+    onDelete() {
+        
+    }
 }

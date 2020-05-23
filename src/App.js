@@ -4,10 +4,15 @@ import RendererService from './services/RendererService';
 import CameraService from './services/CameraService';
 import SceneService from './services/SceneService';
 import DemoWretch from './components/demo-wretch/DemoWretch';
+import EntityManagerService from './services/EntityManagerService';
 
 function App() {
 
-  SceneService.scene.background = new THREE.Color(0x68a357)
+  window.services = {
+    entityManager: EntityManagerService
+  }
+
+  SceneService.scene.background = new THREE.Color(0x68a357);
 
   return (
     <div className="App">

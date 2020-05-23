@@ -11,7 +11,7 @@ export default class QuerySystem extends System {
         const queryComps = this._entityManager.getComponents('query');
         queryComps.forEach(queryComp => {
             if (queryComp.queryRequest) {
-                queryComp.queryResult = QueryExecutor(queryComp.queryRequest);
+                queryComp.queryResult = QueryExecutor(queryComp.queryRequest, this._entityManager);
                 queryComp.queryRequest = null;
             }
         });

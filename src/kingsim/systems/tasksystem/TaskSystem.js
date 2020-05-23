@@ -2,8 +2,10 @@ import System from "../../../ecs/systems/System";
 import TaskFollowPath from "../../../tasks/implementations/TaskFollowPath";
 import TaskPathFind from "../../../tasks/implementations/TaskPathFind";
 import TaskTravelTo from "../../../tasks/implementations/TaskTravelTo";
-import { PredicateSameEntityIdAs } from '../../../utils/CommonPredicates';
 import TaskFindItem from "../../../tasks/implementations/TaskFindItem";
+import { Query, QueryLocality } from "../../../querys/QueryExecutor";
+import TaskCollectAll from "../../../tasks/implementations/TaskCollectAll";
+import TaskPickUp from "../../../tasks/implementations/TaskPickUp";
 
 export default class TaskSystem extends System {
     // How it works
@@ -18,6 +20,15 @@ export default class TaskSystem extends System {
     //     -> if !entity.itemLocation -> set entity.task = FindItem(food)
     //     -> elseif !entity.at(itemLocation) -> set entity.task = TravelTo(entity.itemLocation)
     // - else self.task = task.parent
+
+    // Task CollectAll(food)
+    // - if entity.queryResult && entity.queryRequest is null -> entity.task = TaskFindItem(food)
+    // - elif entity.queryResult has food && entity.at(food) -> queryResult = null && entity.task = PickUp(food)
+    // - elif entity.queryResult has food && !entity.at(food) -> entity.task = TravelTo(food)
+    // - elif entity.queryResult no food -> entity.task = entity.task.parent;
+
+    // Task PickUp(food)
+    // - entity.pickUpTarget -> delete component && entity.task = entity.task.parent;
 
     // Task FindItem(food)
     // - if entity.itemLocation -> entity.tast = entity.task.parent
@@ -40,28 +51,82 @@ export default class TaskSystem extends System {
         const taskComps = this._entityManager.getComponents('task');
         taskComps.forEach(taskComp => {
             switch (taskComp.task.constructor) {
+                case TaskCollectAll:
+                    this._handleCollectAll(taskComp);
+                    break;
+                case TaskPickUp:
+                    this._handlePickUp(taskComp);
+                    break;
                 case TaskFindItem:
-                    this._handleTaskFindItem(taskComp, taskComp.id);
+                    this._handleTaskFindItem(taskComp);
                     break;
                 case TaskTravelTo:
-                    this._handleTaskTravelTo(taskComp, taskComp.id);
+                    this._handleTaskTravelTo(taskComp);
                     break;
                 case TaskPathFind:
-                    this._handleTaskPathFind(taskComp, taskComp.id);
+                    this._handleTaskPathFind(taskComp);
                     break;
                 case TaskFollowPath:
-                    this._handleTaskFollowPath(taskComp, taskComp.id);
+                    this._handleTaskFollowPath(taskComp);
                     break;
                 default:
             }
         });
     }
 
+    _handleCollectAll = (taskComp) => {
+        // Task PickUpAll(food)
+        // - if entity.queryResult is null && entity.queryRequest is null -> entity.task = TaskFindItem(food)
+        // - elif entity.queryResult has food && entity.at(food) -> queryResult = null && entity.task = PickUp(food)
+        // - elif entity.queryResult has food && !entity.at(food) -> entity.task = TravelTo(food)
+        // - elif entity.queryResult no food -> entity.task = entity.task.parent;
+        const queryComp = this._entityManager.getComponent('query', taskComp.id);
+        if (queryComp.queryResult === null) {
+            const selfKinematic = this._entityManager.getComponent('kinematic', taskComp.id);
+            taskComp.task = new TaskFindItem(taskComp.task, new Query(
+                taskComp.task.taskData.collectCompType,
+                taskComp.task.taskData.collectCompTypePredicate,
+                QueryLocality.NEAREST,
+                selfKinematic.position
+            ));
+        } else if (queryComp.queryResult !== null) {
+            // console.log(queryComp.queryResult)
+            if (queryComp.queryResult.found === 1) { // has food
+                const nearestPosition = queryComp.queryResult.kinematic.position;
+                const selfPosition = this._entityManager.getComponent('kinematic', taskComp.id).position;
+                const distance = selfPosition.distanceTo(nearestPosition);
+                if (distance < 0.01) { // at(food) = true
+                    taskComp.task = new TaskPickUp(taskComp.task, queryComp.queryResult.comp.id);
+                    queryComp.queryResult = null;
+                } else { // at(food) = false
+                    taskComp.task = new TaskTravelTo(taskComp.task, nearestPosition);
+                }
+            } else if(queryComp.queryResult.found === 0) { // no food
+                taskComp.task = taskComp.task.parent;
+            }
+        } 
+    }
+
+    _handlePickUp = (taskComp) => {
+        // Task PickUp(food)
+        // - entity.pickUpTarget -> delete component && entity.task = entity.task.parent;
+        const deleteTarget = taskComp.task.taskData.eid;
+        // console.log("DELETE", taskComp, deleteTarget)
+        this._entityManager.removeAllEntityComponents(deleteTarget);
+        taskComp.task = taskComp.task.parent;
+    }
+
     _handleTaskFindItem = (taskComp) => {
         // Task FindItem(item)
-        // - if entity.findItemQuery.itemResult -> entity.task = entity.task.parent
-        // - elseif !entity.findItemQuery.itemQuery -> entity.itemQuery = nearest food to self
-        // TODO Implement
+        // - if entity.query.queryResult -> entity.task = entity.task.parent
+        // - elseif !entity.query.queryRequest -> entity.query = nearest food to self
+        // - else do nothing
+        const queryComp = this._entityManager.getComponent('query', taskComp.id);
+        if (queryComp.queryResult !== null) {
+            taskComp.task = taskComp.task.parent;
+        } else if (queryComp.queryRequest === null) {
+            queryComp.queryRequest = taskComp.task.taskData.query
+        }
     }
 
     _handleTaskTravelTo = (taskComp) => {
@@ -70,14 +135,15 @@ export default class TaskSystem extends System {
         // - elseif !entity.path -> entity.task = PathFind(location)
         // - elseif path.length > 0 -> entity.task = FollowPath
         const kinematicComp = this._entityManager.getComponent('kinematic', taskComp.id);
-        const toLocation = taskComp.taskData.to;
-        if (kinematicComp.position.x === toLocation.x && kinematicComp.position.y === toLocation.y) {
+        const toLocation = taskComp.task.taskData.to;
+        const distance = kinematicComp.position.distanceTo(toLocation);
+        if (distance < 0.01) {
             taskComp.task = taskComp.task.parent;
             return;
         }
         const pathComp = this._entityManager.getComponent('path', taskComp.id);
         if (pathComp.path === null) {
-            taskComp.task = new TaskPathFind(taskComp.task, taskComp.taskData.to);
+            taskComp.task = new TaskPathFind(taskComp.task, taskComp.task.taskData.to);
             return;
         }
         if (pathComp.path) {
@@ -98,7 +164,7 @@ export default class TaskSystem extends System {
         }
         const pathFindComp = this._entityManager.getComponent('path-find', taskComp.id);
         if (pathFindComp.to === null) {
-            pathFindComp.to = taskComp.taskData.to;
+            pathFindComp.to = taskComp.task.taskData.to;
             return;
         }
     }

@@ -1,4 +1,4 @@
-import Component from "../components/Component"
+import Component from "../components/Component";
 
 export default class EntityManager {
 
@@ -12,7 +12,7 @@ export default class EntityManager {
 
     getComponent(type = "", eid = "") {
         const compMap = this.typeToComponents.get(type);
-        if (compMap !== null) {
+        if (compMap !== undefined) {
             return compMap.get(eid);
         }
     }
@@ -28,19 +28,23 @@ export default class EntityManager {
 
     removeComponent(component = new Component()) {
         const subComponentMap = this.typeToComponents.get(component.type);
+        component.onDelete();
         subComponentMap.delete(component.id);
     }
 
     removeEntityComponent(type = "", eid = "") {
-        const compMap = this.typeToComponents.get(type);
-        if (compMap !== null) {
-            compMap.delete(eid);
+        const comp = this.getComponent(type, eid)
+        if (comp !== undefined) {
+            this.removeComponent(comp);
         }
     }
 
     removeAllEntityComponents(eid = "") {
         this.typeToComponents.forEach(compMap => {
-            compMap.delete(eid);
+            const comp = compMap.get(eid);
+            if (comp !== undefined) {
+                this.removeComponent(comp);
+            }
         });
     }
 }

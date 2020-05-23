@@ -3,7 +3,7 @@ import { Vector2 } from "three";
 
 export default class ArriveSystem extends System {
 
-    acceptableDistance = 0.00;
+    acceptableDistance = 0.01;
     timeToTarget = 0.25;
 
     systemTick(timeDelta) {
@@ -21,6 +21,8 @@ export default class ArriveSystem extends System {
                 
                 if (distanceToTarget < this.acceptableDistance) { // if close enough stop
                     selfSteering.linear = new Vector2();
+                    this._entityManager.removeAllEntityComponents(arriveTargetComp.targetId);
+                    arriveTargetComp.targetId = null;
                 } else { // as get closer slow down
                     const speedNeededToTarget = directionTo.clone().divideScalar(this.timeToTarget);
                     if (speedNeededToTarget.length() > selfSpeed.maxSpeed) { // speed needed greater than max

@@ -3,23 +3,27 @@ import EntityManager from "../ecs/managers/EntityManager";
 
 class QueryExecutorClass {
     static QueryExecutor(query = new Query(), entityManager = new EntityManager()) {
-        const comps = entityManager.getComponents(query.type);
+        let comps = Array.from(entityManager.getComponents(query.compType).values());
+        if (query.compTypePredicate !== null) {
+            comps = comps.filter(query.compTypePredicate);
+        }
         if (query.locality === null) {
             return comps.shift();
         }
 
         switch (query.locality) {
             case QueryLocality.NEAREST:
-                return this._nearestCompTo(query.location, comps, entityManager);
+                return QueryExecutorClass._nearestCompTo(query.location, comps, entityManager);
             case QueryLocality.FARTHEST:
-                return this._farthestCompTo(query.location, comps, entityManager);
+                return QueryExecutorClass._farthestCompTo(query.location, comps, entityManager);
             default:
                 return null;
         }
     }
 
-    _nearestCompTo(location = new Vector2(), comps = [], entityManager = new EntityManager()) {
+    static _nearestCompTo(location = new Vector2(), comps = [], entityManager = new EntityManager()) {
         const nearestResult = {
+            found: 0,
             distance: null,
             comp: null,
             kinematic: null
@@ -29,6 +33,7 @@ class QueryExecutorClass {
             const kinematicComp = entityManager.getComponent('kinematic', comp.id);
             const distance = kinematicComp.position.distanceTo(location);
             if (nearestResult.distance === null) {
+                nearestResult.found = 1;
                 nearestResult.distance = distance;
                 nearestResult.comp = comp;
                 nearestResult.kinematic = kinematicComp;
@@ -42,8 +47,9 @@ class QueryExecutorClass {
         return nearestResult;
     }
 
-    _farthestCompTo(location = new Vector2(), comps = [], entityManager = new EntityManager()) {
+    static _farthestCompTo(location = new Vector2(), comps = [], entityManager = new EntityManager()) {
         const farthestResult = {
+            found: 0,
             distance: null,
             comp: null,
             kinematic: null
@@ -53,6 +59,7 @@ class QueryExecutorClass {
             const kinematicComp = entityManager.getComponent('kinematic', comp.id);
             const distance = kinematicComp.position.distanceTo(location);
             if (farthestResult.distance === null) {
+                farthestResult.found = 1;
                 farthestResult.distance = distance;
                 farthestResult.comp = comp;
                 farthestResult.kinematic = kinematicComp;
@@ -73,12 +80,14 @@ export class Query {
     //"FIND one TYPE food LOCALITY null LOCATION null"
     constructor(
         // find = null,
-        type = null,
+        compType = null,
+        compTypePredicate = null,
         locality = null,
         location = null
     ) {
         // this.find = find;
-        this.type = type;
+        this.compType = compType;
+        this.compTypePredicate = compTypePredicate;
         this.locality = locality;
         this.location = location;
     }

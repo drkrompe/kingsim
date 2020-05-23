@@ -1,7 +1,7 @@
 import EntityManager from "../../ecs/managers/EntityManager";
 import Entity from "../../ecs/entities/Entity";
 import DilspriteComponent from "../components/DilspriteComponent";
-import TypeComponent from "../components/TypeComponent";
+import TypingComponent from "../components/TypingComponent";
 import Dilsprite from "../../utils/dilsprite/Dilsprite";
 
 import Food from '../textures/food/Food.png';
@@ -16,7 +16,7 @@ export default class FoodFactory {
 
     create(at = Vec(0,0)) {
         const entity = new Entity();
-        const type = new TypeComponent(entity, "food");
+        const type = new TypingComponent(entity, "food");
         const kinematic = new KinematicComponent(entity);
         const dilsprite = new DilspriteComponent(entity, this._makeDilsprite(entity));
         
