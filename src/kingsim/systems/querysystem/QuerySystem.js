@@ -1,4 +1,5 @@
 import System from "../../../ecs/systems/System";
+import QueryExecutor from "../../../querys/QueryExecutor";
 
 export default class QuerySystem extends System {
 
@@ -7,6 +8,12 @@ export default class QuerySystem extends System {
     //   - itemQuery null | ItemQuery object
 
     systemTick(timeDelta) {
-        
+        const queryComps = this._entityManager.getComponents('query');
+        queryComps.forEach(queryComp => {
+            if (queryComp.queryRequest) {
+                queryComp.queryResult = QueryExecutor(queryComp.queryRequest);
+                queryComp.queryRequest = null;
+            }
+        });
     }
 }

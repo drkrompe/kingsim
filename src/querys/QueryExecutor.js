@@ -38,6 +38,8 @@ class QueryExecutorClass {
                 nearestResult.kinematic = kinematicComp;
             }
         });
+
+        return nearestResult;
     }
 
     _farthestCompTo(location = new Vector2(), comps = [], entityManager = new EntityManager()) {
@@ -60,6 +62,8 @@ class QueryExecutorClass {
                 farthestResult.kinematic = kinematicComp;
             }
         });
+
+        return farthestResult;
     }
 }
 
