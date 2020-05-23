@@ -1,6 +1,6 @@
 import Component from "../../ecs/components/Component";
 
-export default class FindItemComponent extends Component {
+export default class FindItemQueryComponent extends Component {
     constructor(entity, itemQuery = null) {
         super(entity.id, "find-item");
         this.itemQuery = itemQuery; // null or some kind of query? 
