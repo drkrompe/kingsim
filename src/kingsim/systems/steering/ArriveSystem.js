@@ -7,17 +7,14 @@ export default class ArriveSystem extends System {
     timeToTarget = 0.25;
 
     systemTick(timeDelta) {
-        const kinematicComps = this._entityManager.getComponents('kinematic');
-        const steeringComps = this._entityManager.getComponents('steering');
         const arriveTargetComps = this._entityManager.getComponents('arrive-target');
-        const speedComps = this._entityManager.getComponents('speed');
 
-        arriveTargetComps.forEach(seekTargetComp => {
-            if (seekTargetComp.targetId) {
-                const selfSteering = steeringComps.find(comp => comp.id === seekTargetComp.id);
-                const selfKinematic = kinematicComps.find(comp => comp.id === seekTargetComp.id);
-                const targetKinematic = kinematicComps.find(comp => comp.id === seekTargetComp.targetId);
-                const selfSpeed = speedComps.find(comp => comp.id === seekTargetComp.id);
+        arriveTargetComps.forEach(arriveTargetComp => {
+            if (arriveTargetComp.targetId) {
+                const selfSteering = this._entityManager.getComponent('steering', arriveTargetComp.id);
+                const selfKinematic = this._entityManager.getComponent('kinematic', arriveTargetComp.id);
+                const targetKinematic = this._entityManager.getComponent('kinematic', arriveTargetComp.targetId);
+                const selfSpeed = this._entityManager.getComponent('speed', arriveTargetComp.id);
 
                 const directionTo = targetKinematic.position.clone().sub(selfKinematic.position);
                 const distanceToTarget = directionTo.length();

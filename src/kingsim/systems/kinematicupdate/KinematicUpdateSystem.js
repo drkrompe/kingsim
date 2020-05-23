@@ -3,11 +3,9 @@ import System from "../../../ecs/systems/System";
 export default class KinematicUpdateSystem extends System {
     systemTick(timeDelta) {
         const kinematicComps = this._entityManager.getComponents('kinematic');
-        const steeringComps = this._entityManager.getComponents('steering');
-
         kinematicComps.forEach(kinematicComp => {
-            const steer = steeringComps.find(steerComp => steerComp.id === kinematicComp.id);
-            if (steer && steer.linear.length()) {
+            const steerComp = this._entityManager.getComponent('steering', kinematicComp.id);
+            if (steerComp && steerComp.linear.length()) {
                 // const posUpdate = kinematicComp.velocity.clone().multiplyScalar(timeDelta);
                 // const orientUpdate = kinematicComp.rotation * timeDelta;
                 // const velUpdate = steer.linear.clone().multiplyScalar(timeDelta);
@@ -15,8 +13,8 @@ export default class KinematicUpdateSystem extends System {
                 // velUpdate.length() > 0 && kinematicComp.velocity.add(velUpdate);
                 // kinematicComp.rotation += rotUpdate;
                 
-                const posUpdate = steer.linear.clone().multiplyScalar(timeDelta);
-                const orientUpdate = steer.angular * timeDelta;
+                const posUpdate = steerComp.linear.clone().multiplyScalar(timeDelta);
+                const orientUpdate = steerComp.angular * timeDelta;
                 posUpdate.length() > 0 && kinematicComp.position.add(posUpdate);
                 kinematicComp.orientation += orientUpdate;
             }

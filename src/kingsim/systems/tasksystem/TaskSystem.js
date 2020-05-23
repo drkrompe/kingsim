@@ -57,24 +57,25 @@ export default class TaskSystem extends System {
         });
     }
 
-    _handleTaskFindItem = (taskComp, entityId) => {
+    _handleTaskFindItem = (taskComp) => {
         // Task FindItem(item)
         // - if entity.findItemQuery.itemResult -> entity.task = entity.task.parent
         // - elseif !entity.findItemQuery.itemQuery -> entity.itemQuery = nearest food to self
+        // TODO Implement
     }
 
-    _handleTaskTravelTo = (taskComp, entityId) => {
+    _handleTaskTravelTo = (taskComp) => {
         // Task TravelTo(location)
         // - if entity.at(location) -> entity.task = task.parent
         // - elseif !entity.path -> entity.task = PathFind(location)
         // - elseif path.length > 0 -> entity.task = FollowPath
-        const kinematicComp = this._entityManager.getComponents('kinematic').find(PredicateSameEntityIdAs(entityId));
+        const kinematicComp = this._entityManager.getComponent('kinematic', taskComp.id);
         const toLocation = taskComp.taskData.to;
         if (kinematicComp.position.x === toLocation.x && kinematicComp.position.y === toLocation.y) {
             taskComp.task = taskComp.task.parent;
             return;
         }
-        const pathComp = this._entityManager.getComponents('path').find(PredicateSameEntityIdAs(entityId));
+        const pathComp = this._entityManager.getComponent('path', taskComp.id);
         if (pathComp.path === null) {
             taskComp.task = new TaskPathFind(taskComp.task, taskComp.taskData.to);
             return;
@@ -85,17 +86,17 @@ export default class TaskSystem extends System {
         }
     }
 
-    _handleTaskPathFind = (taskComp, entityId) => {
+    _handleTaskPathFind = (taskComp) => {
         // Task PathFind(pointB)
         // - if entity.path -> entity.task = task.parent
         // - else if !entity.pathFindTarget -> entity.pathFindTarget = pointB
         // - else do nothing
-        const pathComp = this._entityManager.getComponents('path').find(PredicateSameEntityIdAs(entityId));
+        const pathComp = this._entityManager.getComponent('path', taskComp.id);
         if (pathComp.path !== null) {
             taskComp.task = taskComp.task.parent;
             return;
         }
-        const pathFindComp = this._entityManager.getComponents('path-find').find(PredicateSameEntityIdAs(entityId));
+        const pathFindComp = this._entityManager.getComponent('path-find', taskComp.id);
         if (pathFindComp.to === null) {
             pathFindComp.to = taskComp.taskData.to;
             return;
@@ -106,7 +107,7 @@ export default class TaskSystem extends System {
         // Task FollowPath
         // - if path is empty -> entity.task = task.parent
         // - else do nothing
-        const pathComp = this._entityManager.getComponents('path').find(PredicateSameEntityIdAs(entityId));
+        const pathComp = this._entityManager.getComponent('path', taskComp.id);
         if (pathComp.path === null) {
             taskComp.task = taskComp.task.parent;
             return;

@@ -3,17 +3,14 @@ import { Vector2 } from "three";
 
 export default class SeekSystem extends System {
     systemTick(timeDelta) {
-        const kinematicComps = this._entityManager.getComponents('kinematic');
-        const steeringComps = this._entityManager.getComponents('steering');
         const seekTargetComps = this._entityManager.getComponents('seek-target');
-        const speedComps = this._entityManager.getComponents('speed');
         
         seekTargetComps.forEach(seekTargetComp => {
             if (seekTargetComp.targetId) {
-                const selfSteering = steeringComps.find(comp => comp.id === seekTargetComp.id);
-                const selfKinematic = kinematicComps.find(comp => comp.id === seekTargetComp.id);
-                const targetKinematic = kinematicComps.find(comp => comp.id === seekTargetComp.targetId);
-                const selfSpeed = speedComps.find(comp => comp.id === seekTargetComp.id);
+                const selfSteering = this._entityManager.getComponent('steering', seekTargetComp.id);
+                const selfKinematic = this._entityManager.getComponent('kinematic', seekTargetComp.id);
+                const targetKinematic = this._entityManager.getComponent('kinematic', seekTargetComp.targetId);
+                const selfSpeed = this._entityManager.getComponent('speed', seekTargetComp.id);
                 
                 selfSteering.linear = targetKinematic.position.clone().sub(selfKinematic.position)
                 .normalize().multiplyScalar(selfSpeed.maxSpeed);
