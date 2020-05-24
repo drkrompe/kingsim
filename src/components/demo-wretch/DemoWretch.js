@@ -20,9 +20,20 @@ export default class DemoWretch extends React.Component {
         this.clock = new THREE.Clock();
         const foodFactory = new FoodFactory(EntityManagerService);
 
-        foodFactory.create(Vec(-1, 0));
-        foodFactory.create(Vec(1, 0.5));
-        foodFactory.create(Vec(0.5, -0.75));
+        const createRandomFood = () => {
+            foodFactory.create(Vec(
+                Math.random() * 2 - 1,
+                Math.random() * 2 - 1
+            ));
+        }
+
+        const createXRandomFood = (x) => {
+            Array.from(Array(x)).forEach(() => {
+                createRandomFood();
+            });
+        }
+
+        createXRandomFood(100);
 
         new WretchFactory(EntityManagerService).create(Vec(1, 0));
 

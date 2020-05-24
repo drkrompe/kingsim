@@ -5,6 +5,7 @@ import CameraService from './services/CameraService';
 import SceneService from './services/SceneService';
 import DemoWretch from './components/demo-wretch/DemoWretch';
 import EntityManagerService from './services/EntityManagerService';
+import EntityDebugger from './components/entitydebugger/EntityDebugger';
 
 function App() {
 
@@ -23,6 +24,7 @@ function App() {
         updateFunction={null}
         updateFunctions={[]}
       />
+      <EntityDebugger />
     </div>
   );
 }
