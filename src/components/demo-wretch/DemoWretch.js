@@ -15,6 +15,9 @@ import QuerySystem from '../../kingsim/systems/querysystem/QuerySystem';
 import PathFindSystem from '../../kingsim/systems/pathfindsystem/PathFindSystem';
 import MoveGridPositionToKinematicPosition from '../../kingsim/systems/MoveGridPositionToKinematicSystem';
 import GridOverlay from '../../kingsim/overlays/GridOverlay';
+import WallFactory from '../../kingsim/entities/buildings/WallFactory';
+import { Vector2 } from 'three';
+import BuildingConstructionUpdateSystem from '../../kingsim/systems/buildingconstructionupdatesystem/BuildingConstructionUpdateSystem';
 
 export default class DemoWretch extends React.Component {
 
@@ -35,7 +38,7 @@ export default class DemoWretch extends React.Component {
         }
 
         const createRandomFood = () => {
-            const genRand = () => Math.random() * 2 - 1
+            const genRand = () => Math.random() * 1.5 - 0.75
             const rand = [genRand(), genRand()]
             createOnGrid(foodFactory, Vec(
                 ...rand                
@@ -48,9 +51,19 @@ export default class DemoWretch extends React.Component {
             });
         }
 
-        createXRandomFood(100);
+        createXRandomFood(2);
+        this.interval = setInterval(() => {
+            createXRandomFood(2)
+        }, 5000);
 
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, 3));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, 1));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, 0));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, -1));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, -2));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, -3));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, -5));
+        new WretchFactory(EntityManagerService).create(Vec(0, 0));
 
         this.systems = [
             new AnimateDilspriteSystem(EntityManagerService),
@@ -62,9 +75,14 @@ export default class DemoWretch extends React.Component {
             new PathFollowSystem(EntityManagerService),
             new QuerySystem(EntityManagerService),
             new MoveGridPositionToKinematicPosition(EntityManagerService),
+            new BuildingConstructionUpdateSystem(EntityManagerService)
         ];
 
         this.props.updateFunctions.push(this.onTick);
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.interval);
     }
 
     onTick = () => {

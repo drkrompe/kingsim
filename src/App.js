@@ -12,7 +12,7 @@ function App() {
 
   window.debug = {
     entityManager: EntityManagerService,
-    pathFind: true
+    pathFind: false,
   }
 
   SceneService.scene.background = new THREE.Color(0x68a357);

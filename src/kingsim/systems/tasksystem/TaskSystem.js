@@ -4,9 +4,11 @@ import TaskPathFind from "../../../tasks/implementations/TaskPathFind";
 import TaskTravelTo from "../../../tasks/implementations/TaskTravelTo";
 import TaskFindItem from "../../../tasks/implementations/TaskFindItem";
 import { Query, QueryLocality } from "../../../querys/QueryExecutor";
-import TaskCollectAll from "../../../tasks/implementations/TaskCollectAll";
+import TaskFindAllTravelToAndDo from "../../../tasks/implementations/TaskFindAllTravelToAndDo";
 import TaskPickUp from "../../../tasks/implementations/TaskPickUp";
 import Marker from "../../overlays/Marker";
+import TaskBuild from "../../../tasks/implementations/TaskBuild";
+import TaskBuildAndGather from "../../../tasks/implementations/TaskBuildAndGather";
 
 export default class TaskSystem extends System {
     // How it works
@@ -22,10 +24,14 @@ export default class TaskSystem extends System {
     //     -> elseif !entity.at(itemLocation) -> set entity.task = TravelTo(entity.itemLocation)
     // - else self.task = task.parent
 
-    // Task CollectAll(food)
+    // Task PerformBuild(building)
+    // if building isBuilt -> entity.setAnimation(previous) && entity.task = entity.task.parent
+    // else -> entity.setAnimation = "build" && entity.setAnimation("build")
+
+    // Task CollectAll(food) // See FindAllTravelToAndDo
     // - if entity.queryResult && entity.queryRequest is null -> entity.task = TaskFindItem(food)
     // - elif entity.queryResult has food && entity.at(food) -> queryResult = null && entity.task = PickUp(food)
-    // - elif entity.queryResult has food && !entity.at(food) -> entity.task = TravelTo(food)
+    // - elif entity.queryResult has food && !entity.at(food) -> entity.task = TaskTravelTo(food)
     // - elif entity.queryResult no food -> entity.task = entity.task.parent;
 
     // Task PickUp(food)
@@ -34,6 +40,10 @@ export default class TaskSystem extends System {
     // Task FindItem(food)
     // - if entity.itemLocation -> entity.tast = entity.task.parent
     // - elseif !entity.itemLocation -> entity.itemSearchType = food // other sys will fullfill
+
+    // Task Build
+    // - if building is built -> entity.task = entity.task.parent
+    // - else -> setAnimation("building") && building.build(self.buildAmount)
 
     // Task TravelTo(location)
     // - if entity.at(location) -> entity.task = task.parent
@@ -52,8 +62,14 @@ export default class TaskSystem extends System {
         const taskComps = this._entityManager.getComponents('task');
         taskComps.forEach(taskComp => {
             switch (taskComp.task.constructor) {
-                case TaskCollectAll:
-                    this._handleCollectAll(taskComp);
+                case TaskBuildAndGather:
+                    this._handleBuildAndGather(taskComp);
+                    break;
+                case TaskFindAllTravelToAndDo:
+                    this._handleFindAllTravelToAndDo(taskComp);
+                    break;
+                case TaskBuild:
+                    this._handleBuild(taskComp);
                     break;
                 case TaskPickUp:
                     this._handlePickUp(taskComp);
@@ -75,36 +91,52 @@ export default class TaskSystem extends System {
         });
     }
 
-    _handleCollectAll = (taskComp) => {
-        // Task PickUpAll(food)
-        // - if entity.queryResult is null && entity.queryRequest is null -> entity.task = TaskFindItem(food)
-        // - elif entity.queryResult has food && entity.at(food) -> queryResult = null && entity.task = PickUp(food)
-        // - elif entity.queryResult has food && !entity.at(food) -> entity.task = TravelTo(food)
-        // - elif entity.queryResult no food -> entity.task = entity.task.parent;
+    _handleBuildAndGather = (taskComp) => {
+        // Task GatherAndBuild
+        // if possibleBuildTarget -> entity.task = Task HandleFindAllTravelToAndDo(unfinishedbuildings, Task Build)
+        // elif possibleGatherTarget -> entity.task = Task HandleFindAllTravelToAndDo(food, Task PickUp)
+        // else -> entity.task = entity.task.parent
+        const possibleBuildTarget = Array.from(this._entityManager.getComponents('building').values()).find(building => building.isBuilt !== true);
+        const possibleFoodTarget = Array.from(this._entityManager.getComponents('typing').values()).find(typeComp => typeComp.typing === 'food');
+        if (possibleBuildTarget !== undefined) {
+            taskComp.task = new TaskFindAllTravelToAndDo(taskComp.task, "building", (buildingComp => buildingComp.isBuilt !== true), TaskBuild);
+        } else if (possibleFoodTarget !== undefined) {
+            taskComp.task = new TaskFindAllTravelToAndDo(taskComp.task, "typing", (typingComp => typingComp.typing === 'food'), TaskPickUp);
+        } else {
+            taskComp.task = taskComp.task.parent;
+        }
+    }
+
+    _handleFindAllTravelToAndDo = (taskComp) => {
+        // Task BuildUnfinishedBuildings
+        // if entity.queryResult is null -> entity.task = FindItem(unfinishedBuilding)
+        // elif entity.queryResult has building && entity.at(building) -> queryResult = null && entity.task = Build(building)
+        // elif entity.queryResult has building && !entity.at(building) -> entity.task = TravelTo(building)
+        // elif entity.queryResult no building -> entity.task = entity.task.parent;
         const queryComp = this._entityManager.getComponent('query', taskComp.id);
         if (queryComp.queryResult === null) {
             const selfKinematic = this._entityManager.getComponent('kinematic', taskComp.id);
             taskComp.task = new TaskFindItem(taskComp.task, new Query(
-                taskComp.task.taskData.collectCompType,
-                taskComp.task.taskData.collectCompTypePredicate,
-                QueryLocality.FARTHEST,
+                taskComp.task.taskData.findCompType,
+                taskComp.task.taskData.findCompTypePredicate,
+                QueryLocality.NEAREST,
                 selfKinematic.position
             ));
-        } else if (queryComp.queryResult !== null) {
-            if (queryComp.queryResult.found === 1) { // has food
-                const foundPosition = queryComp.queryResult.kinematic.position;
-                const selfPosition = this._entityManager.getComponent('kinematic', taskComp.id).position;
-                const distance = selfPosition.distanceTo(foundPosition);
-                if (distance < 0.01) { // at(food) = true
-                    taskComp.task = new TaskPickUp(taskComp.task, queryComp.queryResult.comp.id);
-                    queryComp.queryResult = null;
-                } else { // at(food) = false
-                    taskComp.task = new TaskTravelTo(taskComp.task, foundPosition); 
-                }
-            } else if(queryComp.queryResult.found === 0) { // no food
-                taskComp.task = taskComp.task.parent;
+        } else if (queryComp.queryResult.found === 1) {
+            const foundPosition = queryComp.queryResult.kinematic.position;
+            const selfPosition = this._entityManager.getComponent('kinematic', taskComp.id).position;
+            const distance = selfPosition.distanceTo(foundPosition);
+            if (distance < 0.01) {
+                taskComp.task = new taskComp.task.taskData.doTaskConstructor(taskComp.task, queryComp.queryResult.comp.id);
+                queryComp.queryResult = null;
+            } else {
+                taskComp.task = new TaskTravelTo(taskComp.task, foundPosition);
+                queryComp.queryResult = null;
             }
-        } 
+        } else {
+            taskComp.task = taskComp.task.parent;
+            queryComp.queryResult = null;
+        }
     }
 
     _handlePickUp = (taskComp) => {
@@ -113,6 +145,20 @@ export default class TaskSystem extends System {
         const deleteTarget = taskComp.task.taskData.eid;
         this._entityManager.removeAllEntityComponents(deleteTarget);
         taskComp.task = taskComp.task.parent;
+    }
+
+    _handleBuild = (taskComp) => {
+        // Task Build
+        // - if building is built -> entity.task = entity.task.parent
+        // - else -> setAnimation("building") && building.build(self.buildAmount)
+        const buildTarget = taskComp.task.taskData.eid;
+        const buildingComp = this._entityManager.getComponent('building', buildTarget);
+        if (buildingComp.isBuilt === true) {
+            taskComp.task = taskComp.task.parent;
+        } else {
+            const selfBuilder = this._entityManager.getComponent('builder', taskComp.id);
+            buildingComp.workProgress += selfBuilder.work;
+        }
     }
 
     _handleTaskFindItem = (taskComp) => {

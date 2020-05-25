@@ -13,9 +13,12 @@ import ArriveTargetComponent from "../components/ArriveTargetComponent";
 import TaskComponent from "../components/TaskComponent";
 import PathComponent from "../components/PathComponent";
 import QueryComponent from "../components/QueryComponent";
-import TaskCollectAll from "../../tasks/implementations/TaskCollectAll";
 import PathFindComponent from "../components/PathFindComponent";
 import GridPositionComponent from "../components/GridPositionComponent";
+import TaskFindAllTravelToAndDo from "../../tasks/implementations/TaskFindAllTravelToAndDo";
+import TaskBuild from "../../tasks/implementations/TaskBuild";
+import BuilderComponent from "../components/BuilderComponent";
+import TaskBuildAndGather from "../../tasks/implementations/TaskBuildAndGather";
 
 
 export default class WretchFactory {
@@ -36,7 +39,9 @@ export default class WretchFactory {
         const query = new QueryComponent(entity, null);
         const path = new PathComponent(entity, null);
         const pathFind = new PathFindComponent(entity, null);
-        const task = new TaskComponent(entity, new TaskCollectAll(null, "typing", (comp) => comp.typing === "food"));
+        const builder = new BuilderComponent(entity);
+        const task = new TaskComponent(entity, new TaskBuildAndGather(null));
+
 
         speed.maxSpeed = 0.25;
         kinematic.position.x = at.x;
@@ -55,6 +60,7 @@ export default class WretchFactory {
         this.entityManager.addComponent(path);
         this.entityManager.addComponent(pathFind);
         this.entityManager.addComponent(task);
+        this.entityManager.addComponent(builder);
 
         return entity;
     }
