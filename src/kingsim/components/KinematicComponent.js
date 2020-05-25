@@ -4,9 +4,9 @@ import { Vector2 } from "three";
 export default class KinematicComponent extends Component {
     constructor(entity) {
         super(entity.id, "kinematic");
-        this.position = new Vector2(0,0);
+        this.position = new Vector2(0, 0);
         this.orientation = 0; // radians
-        this.velocity = new Vector2(0,0);
+        this.velocity = new Vector2(0, 0);
         this.rotation = 0; // radians;
 
         // position = 2d location in world

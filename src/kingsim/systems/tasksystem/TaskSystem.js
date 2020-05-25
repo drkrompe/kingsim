@@ -6,6 +6,7 @@ import TaskFindItem from "../../../tasks/implementations/TaskFindItem";
 import { Query, QueryLocality } from "../../../querys/QueryExecutor";
 import TaskCollectAll from "../../../tasks/implementations/TaskCollectAll";
 import TaskPickUp from "../../../tasks/implementations/TaskPickUp";
+import Marker from "../../overlays/Marker";
 
 export default class TaskSystem extends System {
     // How it works
@@ -86,20 +87,19 @@ export default class TaskSystem extends System {
             taskComp.task = new TaskFindItem(taskComp.task, new Query(
                 taskComp.task.taskData.collectCompType,
                 taskComp.task.taskData.collectCompTypePredicate,
-                QueryLocality.NEAREST,
+                QueryLocality.FARTHEST,
                 selfKinematic.position
             ));
         } else if (queryComp.queryResult !== null) {
-            // console.log(queryComp.queryResult)
             if (queryComp.queryResult.found === 1) { // has food
-                const nearestPosition = queryComp.queryResult.kinematic.position;
+                const foundPosition = queryComp.queryResult.kinematic.position;
                 const selfPosition = this._entityManager.getComponent('kinematic', taskComp.id).position;
-                const distance = selfPosition.distanceTo(nearestPosition);
+                const distance = selfPosition.distanceTo(foundPosition);
                 if (distance < 0.01) { // at(food) = true
                     taskComp.task = new TaskPickUp(taskComp.task, queryComp.queryResult.comp.id);
                     queryComp.queryResult = null;
                 } else { // at(food) = false
-                    taskComp.task = new TaskTravelTo(taskComp.task, nearestPosition);
+                    taskComp.task = new TaskTravelTo(taskComp.task, foundPosition); 
                 }
             } else if(queryComp.queryResult.found === 0) { // no food
                 taskComp.task = taskComp.task.parent;
@@ -111,7 +111,6 @@ export default class TaskSystem extends System {
         // Task PickUp(food)
         // - entity.pickUpTarget -> delete component && entity.task = entity.task.parent;
         const deleteTarget = taskComp.task.taskData.eid;
-        // console.log("DELETE", taskComp, deleteTarget)
         this._entityManager.removeAllEntityComponents(deleteTarget);
         taskComp.task = taskComp.task.parent;
     }
@@ -143,7 +142,11 @@ export default class TaskSystem extends System {
         }
         const pathComp = this._entityManager.getComponent('path', taskComp.id);
         if (pathComp.path === null) {
-            taskComp.task = new TaskPathFind(taskComp.task, taskComp.task.taskData.to);
+            taskComp.task = new TaskPathFind(
+                taskComp.task,
+                taskComp.task.taskData.to,
+                kinematicComp.position
+            );
             return;
         }
         if (pathComp.path) {
@@ -160,11 +163,17 @@ export default class TaskSystem extends System {
         const pathComp = this._entityManager.getComponent('path', taskComp.id);
         if (pathComp.path !== null) {
             taskComp.task = taskComp.task.parent;
+            window.debug.pathFind && pathComp.path.forEach(pt => {
+                Marker.createAt(pt, 0x000000, 5000)
+            });
             return;
         }
         const pathFindComp = this._entityManager.getComponent('path-find', taskComp.id);
         if (pathFindComp.to === null) {
             pathFindComp.to = taskComp.task.taskData.to;
+            pathFindComp.from = taskComp.task.taskData.from;
+            window.debug.pathFind && Marker.createAt(taskComp.task.taskData.from, 0xffffff);
+            window.debug.pathFind && Marker.createAt(taskComp.task.taskData.to, 0xffff00);
             return;
         }
     }

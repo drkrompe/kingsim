@@ -13,6 +13,8 @@ import TaskSystem from '../../kingsim/systems/tasksystem/TaskSystem';
 import PathFollowSystem from '../../kingsim/systems/pathfollowsystem/PathFollowSystem';
 import QuerySystem from '../../kingsim/systems/querysystem/QuerySystem';
 import PathFindSystem from '../../kingsim/systems/pathfindsystem/PathFindSystem';
+import MoveGridPositionToKinematicPosition from '../../kingsim/systems/MoveGridPositionToKinematicSystem';
+import GridOverlay from '../../kingsim/overlays/GridOverlay';
 
 export default class DemoWretch extends React.Component {
 
@@ -20,10 +22,23 @@ export default class DemoWretch extends React.Component {
         this.clock = new THREE.Clock();
         const foodFactory = new FoodFactory(EntityManagerService);
 
+        const createAt = (factory, position) => {
+            factory.create(position);
+        }
+
+        const createOnGrid = (factory, position) => {
+            factory.create(
+                GridOverlay.gridPositionToWorldPosition(
+                    GridOverlay.worldPositionToGridPosition(position)
+                )
+            );
+        }
+
         const createRandomFood = () => {
-            foodFactory.create(Vec(
-                Math.random() * 2 - 1,
-                Math.random() * 2 - 1
+            const genRand = () => Math.random() * 2 - 1
+            const rand = [genRand(), genRand()]
+            createOnGrid(foodFactory, Vec(
+                ...rand                
             ));
         }
 
@@ -35,7 +50,7 @@ export default class DemoWretch extends React.Component {
 
         createXRandomFood(100);
 
-        new WretchFactory(EntityManagerService).create(Vec(1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
 
         this.systems = [
             new AnimateDilspriteSystem(EntityManagerService),
@@ -45,7 +60,8 @@ export default class DemoWretch extends React.Component {
             new TaskSystem(EntityManagerService),
             new PathFindSystem(EntityManagerService),
             new PathFollowSystem(EntityManagerService),
-            new QuerySystem(EntityManagerService)
+            new QuerySystem(EntityManagerService),
+            new MoveGridPositionToKinematicPosition(EntityManagerService),
         ];
 
         this.props.updateFunctions.push(this.onTick);

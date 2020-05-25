@@ -6,17 +6,21 @@ import SceneService from './services/SceneService';
 import DemoWretch from './components/demo-wretch/DemoWretch';
 import EntityManagerService from './services/EntityManagerService';
 import EntityDebugger from './components/entitydebugger/EntityDebugger';
+import SimpleControls from './components/simpleControls/SimpleControls';
 
 function App() {
 
-  window.services = {
-    entityManager: EntityManagerService
+  window.debug = {
+    entityManager: EntityManagerService,
+    pathFind: true
   }
 
   SceneService.scene.background = new THREE.Color(0x68a357);
 
   return (
     <div className="App">
+      <SimpleControls/>
+      <EntityDebugger />
       <DemoWretch
         renderer={RendererService.renderer}
         camera={CameraService.camera}
@@ -24,7 +28,6 @@ function App() {
         updateFunction={null}
         updateFunctions={[]}
       />
-      <EntityDebugger />
     </div>
   );
 }

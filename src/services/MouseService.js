@@ -25,7 +25,7 @@ const createDebugMouseAt = (position) => {
         side: THREE.DoubleSide,
         transparent: true,
         opacity: 1
-    })
+    });
     const indicatorMesh = new THREE.Mesh(geom, material);
     indicatorMesh.scale.x = 0.05
     indicatorMesh.scale.y = 0.05
@@ -57,7 +57,6 @@ const onMouseMove = (event) => {
         mouseDebug.position.x = mouse.x;
         mouseDebug.position.y = mouse.y;
     }
-
 
     onMouseMoveFunctions.forEach(func => {
         func(mouse);

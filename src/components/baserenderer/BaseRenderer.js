@@ -22,6 +22,7 @@ export default class BaseRenderer extends React.Component {
 
     componentDidMount() {
         window.addEventListener('resize', this.onScreenResize);
+        window.addEventListener('mousemove', MouseService.onMouseMove)
         this.onScreenResize();
 
         const element = document.getElementById(this.id);
@@ -35,7 +36,8 @@ export default class BaseRenderer extends React.Component {
     }
 
     componentWillUnmount() {
-        window.removeEventListener('resize', MouseService.onMouseMove, false);
+        window.removeEventListener('resize', this.onScreenResize, false);
+        window.removeEventListener('mousemove', MouseService.onMouseMove, false);
     }
 
     onScreenResize = () => {

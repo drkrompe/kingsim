@@ -4,7 +4,7 @@ import { Vector2 } from "three";
 export default class ArriveSystem extends System {
 
     acceptableDistance = 0.01;
-    timeToTarget = 0.25;
+    timeToTarget = 0.01;
 
     systemTick(timeDelta) {
         const arriveTargetComps = this._entityManager.getComponents('arrive-target');
