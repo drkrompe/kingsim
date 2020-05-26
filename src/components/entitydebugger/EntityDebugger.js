@@ -46,6 +46,12 @@ export default class EntityDebugger extends React.Component {
             } else if (type === "path-find") {
                 ret.push(component.from)
                 ret.push(component.to)
+            } else if (type === "arrive-target") {
+                ret.push(component.targetId)
+            } else if (type === "query") {
+                component.queryResult && ret.push(component.queryResult.distance)
+            } else if (type === "steering") {
+                ret.push(this.vector2ToString(component.linear))
             }
         })
 

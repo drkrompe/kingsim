@@ -1,4 +1,5 @@
 import React from 'react';
+import "./App.scss";
 import * as THREE from 'three';
 import RendererService from './services/RendererService';
 import CameraService from './services/CameraService';
@@ -19,15 +20,17 @@ function App() {
 
   return (
     <div className="App">
-      <SimpleControls/>
       <EntityDebugger />
-      <DemoWretch
-        renderer={RendererService.renderer}
-        camera={CameraService.camera}
-        scene={SceneService.scene}
-        updateFunction={null}
-        updateFunctions={[]}
-      />
+      <div className="canvas-and-controls">
+        <DemoWretch
+          renderer={RendererService.renderer}
+          camera={CameraService.camera}
+          scene={SceneService.scene}
+          updateFunction={null}
+          updateFunctions={[]}
+        />
+        <SimpleControls />
+      </div>
     </div>
   );
 }

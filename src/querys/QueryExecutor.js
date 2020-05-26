@@ -2,7 +2,10 @@ import { Vector2 } from "three";
 import EntityManager from "../ecs/managers/EntityManager";
 
 class QueryExecutorClass {
+    static query = 0;
     static QueryExecutor(query = new Query(), entityManager = new EntityManager()) {
+
+
         let comps = Array.from(entityManager.getComponents(query.compType).values());
         if (query.compTypePredicate !== null) {
             comps = comps.filter(query.compTypePredicate);
@@ -43,7 +46,6 @@ class QueryExecutorClass {
                 nearestResult.kinematic = kinematicComp;
             }
         });
-
         return nearestResult;
     }
 

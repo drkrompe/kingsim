@@ -9,6 +9,7 @@ import TaskPickUp from "../../../tasks/implementations/TaskPickUp";
 import Marker from "../../overlays/Marker";
 import TaskBuild from "../../../tasks/implementations/TaskBuild";
 import TaskBuildAndGather from "../../../tasks/implementations/TaskBuildAndGather";
+import UsedByMapService from "../../../services/UsedByMapService";
 
 export default class TaskSystem extends System {
     // How it works
@@ -96,12 +97,29 @@ export default class TaskSystem extends System {
         // if possibleBuildTarget -> entity.task = Task HandleFindAllTravelToAndDo(unfinishedbuildings, Task Build)
         // elif possibleGatherTarget -> entity.task = Task HandleFindAllTravelToAndDo(food, Task PickUp)
         // else -> entity.task = entity.task.parent
-        const possibleBuildTarget = Array.from(this._entityManager.getComponents('building').values()).find(building => building.isBuilt !== true);
-        const possibleFoodTarget = Array.from(this._entityManager.getComponents('typing').values()).find(typeComp => typeComp.typing === 'food');
+        const predicateNotBeingUsedByAnyone = comp => {
+            return UsedByMapService.getAllUsersOf(comp.id).size === 0;
+        };
+
+        const buildingComps = this._entityManager.getComponents('building').values();
+        const typingComps = this._entityManager.getComponents('typing').values();
+        const possibleBuildTarget = Array.from(buildingComps).find(building => building.isBuilt !== true && predicateNotBeingUsedByAnyone(building));
+        const possibleFoodTarget = Array.from(typingComps).find(typeComp => typeComp.typing === 'food' && predicateNotBeingUsedByAnyone(typeComp));
+
         if (possibleBuildTarget !== undefined) {
-            taskComp.task = new TaskFindAllTravelToAndDo(taskComp.task, "building", (buildingComp => buildingComp.isBuilt !== true), TaskBuild);
+            taskComp.task = new TaskFindAllTravelToAndDo(
+                taskComp.task,
+                "building",
+                buildingComp => buildingComp.isBuilt !== true && predicateNotBeingUsedByAnyone(buildingComp),
+                TaskBuild
+            );
         } else if (possibleFoodTarget !== undefined) {
-            taskComp.task = new TaskFindAllTravelToAndDo(taskComp.task, "typing", (typingComp => typingComp.typing === 'food'), TaskPickUp);
+            taskComp.task = new TaskFindAllTravelToAndDo(
+                taskComp.task,
+                "typing",
+                (typingComp) => typingComp.typing === 'food' && predicateNotBeingUsedByAnyone(typingComp),
+                TaskPickUp
+            );
         } else {
             taskComp.task = taskComp.task.parent;
         }
@@ -113,6 +131,7 @@ export default class TaskSystem extends System {
         // elif entity.queryResult has building && entity.at(building) -> queryResult = null && entity.task = Build(building)
         // elif entity.queryResult has building && !entity.at(building) -> entity.task = TravelTo(building)
         // elif entity.queryResult no building -> entity.task = entity.task.parent;
+
         const queryComp = this._entityManager.getComponent('query', taskComp.id);
         if (queryComp.queryResult === null) {
             const selfKinematic = this._entityManager.getComponent('kinematic', taskComp.id);
@@ -123,6 +142,15 @@ export default class TaskSystem extends System {
                 selfKinematic.position
             ));
         } else if (queryComp.queryResult.found === 1) {
+            const usersOfComp = UsedByMapService.getAllUsersOf(queryComp.queryResult.comp.id);
+            if (!usersOfComp.has(taskComp.id) && usersOfComp.size !== 0) {
+                // Check still not being used... is not => cache miss query -> redo query
+                queryComp.queryResult = null;
+                return;
+            } else {
+                UsedByMapService.addTaskUser(queryComp.queryResult.comp.id, TaskFindAllTravelToAndDo.constructor.name, taskComp.id);
+                taskComp.task.taskData.usingEid = queryComp.queryResult.comp.id;
+            }
             const foundPosition = queryComp.queryResult.kinematic.position;
             const selfPosition = this._entityManager.getComponent('kinematic', taskComp.id).position;
             const distance = selfPosition.distanceTo(foundPosition);
@@ -131,9 +159,13 @@ export default class TaskSystem extends System {
                 queryComp.queryResult = null;
             } else {
                 taskComp.task = new TaskTravelTo(taskComp.task, foundPosition);
-                queryComp.queryResult = null;
+                // queryComp.queryResult = null;
             }
         } else {
+            // if using item for this task, remove it
+            if (taskComp.task.taskData.usingEid !== null) {
+                UsedByMapService.removeTaskUser(taskComp.task.taskData.usingEid, TaskFindAllTravelToAndDo.constructor.name, taskComp.id);
+            }
             taskComp.task = taskComp.task.parent;
             queryComp.queryResult = null;
         }
@@ -224,7 +256,7 @@ export default class TaskSystem extends System {
         }
     }
 
-    _handleTaskFollowPath = (taskComp, entityId) => {
+    _handleTaskFollowPath = (taskComp) => {
         // Task FollowPath
         // - if path is empty -> entity.task = task.parent
         // - else do nothing

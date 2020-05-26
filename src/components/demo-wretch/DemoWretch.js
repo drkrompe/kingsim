@@ -13,7 +13,7 @@ import TaskSystem from '../../kingsim/systems/tasksystem/TaskSystem';
 import PathFollowSystem from '../../kingsim/systems/pathfollowsystem/PathFollowSystem';
 import QuerySystem from '../../kingsim/systems/querysystem/QuerySystem';
 import PathFindSystem from '../../kingsim/systems/pathfindsystem/PathFindSystem';
-import MoveGridPositionToKinematicPosition from '../../kingsim/systems/MoveGridPositionToKinematicSystem';
+import MoveGridPositionToKinematicPositionSystem from '../../kingsim/systems/MoveGridPositionToKinematicSystem';
 import GridOverlay from '../../kingsim/overlays/GridOverlay';
 import WallFactory from '../../kingsim/entities/buildings/WallFactory';
 import { Vector2 } from 'three';
@@ -38,7 +38,7 @@ export default class DemoWretch extends React.Component {
         }
 
         const createRandomFood = () => {
-            const genRand = () => Math.random() * 1.5 - 0.75
+            const genRand = () => Math.random() * 2 - 1
             const rand = [genRand(), genRand()]
             createOnGrid(foodFactory, Vec(
                 ...rand                
@@ -51,9 +51,9 @@ export default class DemoWretch extends React.Component {
             });
         }
 
-        createXRandomFood(2);
+        createXRandomFood(30);
         this.interval = setInterval(() => {
-            createXRandomFood(2)
+            createXRandomFood(50)
         }, 5000);
 
         new WallFactory(EntityManagerService).create(new Vector2(-1, 3));
@@ -63,7 +63,29 @@ export default class DemoWretch extends React.Component {
         new WallFactory(EntityManagerService).create(new Vector2(-1, -2));
         new WallFactory(EntityManagerService).create(new Vector2(-1, -3));
         new WallFactory(EntityManagerService).create(new Vector2(-1, -5));
-        new WretchFactory(EntityManagerService).create(Vec(0, 0));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, -6));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, -7));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, -8));
+        new WallFactory(EntityManagerService).create(new Vector2(-1, -9));
+        new WallFactory(EntityManagerService).create(new Vector2(0, -9));
+        new WallFactory(EntityManagerService).create(new Vector2(1, -9));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
 
         this.systems = [
             new AnimateDilspriteSystem(EntityManagerService),
@@ -74,7 +96,7 @@ export default class DemoWretch extends React.Component {
             new PathFindSystem(EntityManagerService),
             new PathFollowSystem(EntityManagerService),
             new QuerySystem(EntityManagerService),
-            new MoveGridPositionToKinematicPosition(EntityManagerService),
+            new MoveGridPositionToKinematicPositionSystem(EntityManagerService),
             new BuildingConstructionUpdateSystem(EntityManagerService)
         ];
 

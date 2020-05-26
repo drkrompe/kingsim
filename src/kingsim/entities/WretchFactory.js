@@ -15,8 +15,6 @@ import PathComponent from "../components/PathComponent";
 import QueryComponent from "../components/QueryComponent";
 import PathFindComponent from "../components/PathFindComponent";
 import GridPositionComponent from "../components/GridPositionComponent";
-import TaskFindAllTravelToAndDo from "../../tasks/implementations/TaskFindAllTravelToAndDo";
-import TaskBuild from "../../tasks/implementations/TaskBuild";
 import BuilderComponent from "../components/BuilderComponent";
 import TaskBuildAndGather from "../../tasks/implementations/TaskBuildAndGather";
 
