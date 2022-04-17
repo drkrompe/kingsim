@@ -2,7 +2,7 @@
 
 # Kingsim
 
-Browser based kingdom simulation.
+Browser based ~~kingdom simulation~~ simple AI PoC showcase.
 
 Uses React, Three-js, and ECS architecture to simulate a small browser kingdom.
 

@@ -38,8 +38,9 @@ export default class DemoWretch extends React.Component {
         }
 
         const createRandomFood = () => {
-            const genRand = () => Math.random() * 2 - 1
-            const rand = [genRand(), genRand()]
+            const genRand = () => Math.random() * 2 - 1;
+            const genRandX = () => Math.random() * 4 - 2;
+            const rand = [genRandX(), genRand()]
             createOnGrid(foodFactory, Vec(
                 ...rand                
             ));
@@ -51,10 +52,10 @@ export default class DemoWretch extends React.Component {
             });
         }
 
-        createXRandomFood(30);
+        createXRandomFood(130);
         this.interval = setInterval(() => {
-            createXRandomFood(60)
-        }, 5000);
+            createXRandomFood(130)
+        }, 2250);
 
         new WallFactory(EntityManagerService).create(new Vector2(-1, 3));
         new WallFactory(EntityManagerService).create(new Vector2(-1, 1));

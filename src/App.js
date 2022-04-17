@@ -30,7 +30,7 @@ function App() {
                 />
                 <SimpleControls/>
             </div>
-            {/*<EntityDebugger/>*/}
+            <EntityDebugger/>
         </div>
     );
 }

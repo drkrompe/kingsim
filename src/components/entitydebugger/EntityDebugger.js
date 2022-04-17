@@ -11,6 +11,14 @@ export default class EntityDebugger extends React.Component {
         }
     }
 
+    componentDidMount() {
+        this.interval = setInterval(() => {
+            this.setState({
+                hello: !this.state.hello
+            });
+        }, 100);
+    }
+
     componentWillUnmount() {
         clearInterval(this.interval);
     }
