@@ -53,7 +53,7 @@ export default class DemoWretch extends React.Component {
 
         createXRandomFood(30);
         this.interval = setInterval(() => {
-            createXRandomFood(50)
+            createXRandomFood(60)
         }, 5000);
 
         new WallFactory(EntityManagerService).create(new Vector2(-1, 3));

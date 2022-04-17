@@ -11,28 +11,28 @@ import SimpleControls from './components/simpleControls/SimpleControls';
 
 function App() {
 
-  window.debug = {
-    entityManager: EntityManagerService,
-    pathFind: false,
-  }
+    window.debug = {
+        entityManager: EntityManagerService,
+        pathFind: false,
+    }
 
-  SceneService.scene.background = new THREE.Color(0x68a357);
+    SceneService.scene.background = new THREE.Color(0x68a357);
 
-  return (
-    <div className="App">
-      <EntityDebugger />
-      <div className="canvas-and-controls">
-        <DemoWretch
-          renderer={RendererService.renderer}
-          camera={CameraService.camera}
-          scene={SceneService.scene}
-          updateFunction={null}
-          updateFunctions={[]}
-        />
-        <SimpleControls />
-      </div>
-    </div>
-  );
+    return (
+        <div className="App">
+            <div className="canvas-and-controls">
+                <DemoWretch
+                    renderer={RendererService.renderer}
+                    camera={CameraService.camera}
+                    scene={SceneService.scene}
+                    updateFunction={null}
+                    updateFunctions={[]}
+                />
+                <SimpleControls/>
+            </div>
+            {/*<EntityDebugger/>*/}
+        </div>
+    );
 }
 
 export default App;
