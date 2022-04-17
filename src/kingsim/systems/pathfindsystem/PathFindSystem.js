@@ -18,6 +18,7 @@ export default class PathFindSystem extends System {
 
     systemTick(timeDelta) {
         const pathFindComps = this._entityManager.getComponents('path-find');
+        if (!pathFindComps) return;
         pathFindComps.forEach(pathFindComp => {
             if (pathFindComp.to !== null) {
                 const path = this._pathFind(pathFindComp.from, pathFindComp.to);

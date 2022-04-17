@@ -8,6 +8,7 @@ export default class ArriveSystem extends System {
 
     systemTick(timeDelta) {
         const arriveTargetComps = this._entityManager.getComponents('arrive-target');
+        if (!arriveTargetComps) return;
 
         arriveTargetComps.forEach(arriveTargetComp => {
             if (arriveTargetComp.targetId) {

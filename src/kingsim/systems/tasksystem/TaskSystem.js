@@ -61,6 +61,7 @@ export default class TaskSystem extends System {
     // - else do nothing
     systemTick(timeDelta) {
         const taskComps = this._entityManager.getComponents('task');
+        if (!taskComps) return;
         taskComps.forEach(taskComp => {
             switch (taskComp.task.constructor) {
                 case TaskBuildAndGather:

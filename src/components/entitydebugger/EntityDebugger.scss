@@ -1,6 +1,7 @@
 .entity-debugger{
     display: flex;
     flex-direction: column;
+    max-width: 2000px;
     color: white;
     background-color: darkcyan;
     // height: 200px;
@@ -10,7 +11,13 @@
 
         .sub-entry {
             display: flex;
+            flex-wrap: wrap;
             background-color: green;
+            overflow-y: scroll;
         }
+    }
+
+    .arrive-target {
+        font-size: 8px;
     }
 }

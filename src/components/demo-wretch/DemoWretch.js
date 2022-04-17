@@ -1,7 +1,7 @@
 import React from 'react';
 import * as THREE from 'three';
+import {Vector2} from 'three';
 import BaseRenderer from '../baserenderer/BaseRenderer';
-import WretchFactory from '../../kingsim/entities/WretchFactory';
 import EntityManagerService from '../../services/EntityManagerService';
 import AnimateDilspriteSystem from '../../kingsim/systems/AnimateDilspriteSystem';
 import FoodFactory from '../../kingsim/entities/FoodFactory';
@@ -16,18 +16,17 @@ import PathFindSystem from '../../kingsim/systems/pathfindsystem/PathFindSystem'
 import MoveGridPositionToKinematicPositionSystem from '../../kingsim/systems/MoveGridPositionToKinematicSystem';
 import GridOverlay from '../../kingsim/overlays/GridOverlay';
 import WallFactory from '../../kingsim/entities/buildings/WallFactory';
-import { Vector2 } from 'three';
-import BuildingConstructionUpdateSystem from '../../kingsim/systems/buildingconstructionupdatesystem/BuildingConstructionUpdateSystem';
+import BuildingConstructionUpdateSystem
+    from '../../kingsim/systems/buildingconstructionupdatesystem/BuildingConstructionUpdateSystem';
+import WretchFactory from "../../kingsim/entities/WretchFactory";
 
 export default class DemoWretch extends React.Component {
 
     componentDidMount() {
         this.clock = new THREE.Clock();
         const foodFactory = new FoodFactory(EntityManagerService);
-
-        const createAt = (factory, position) => {
-            factory.create(position);
-        }
+        const wretchFactory = new WretchFactory(EntityManagerService);
+        const wallFactory = new WallFactory(EntityManagerService);
 
         const createOnGrid = (factory, position) => {
             factory.create(
@@ -38,55 +37,121 @@ export default class DemoWretch extends React.Component {
         }
 
         const createRandomFood = () => {
-            const genRand = () => Math.random() * 2 - 1;
-            const genRandX = () => Math.random() * 4 - 2;
-            const rand = [genRandX(), genRand()]
-            createOnGrid(foodFactory, Vec(
-                ...rand                
-            ));
+            let spaceInUse;
+            let rand = [0, 0];
+            let collisions = 0;
+            do {
+                spaceInUse = false;
+                const genRand = () => Math.random() * 2 - 1;
+                const genRandX = () => Math.random() * 4 - 2;
+                rand = [genRandX(), genRand()]
+                let kinematics = EntityManagerService.getComponents('kinematic');
+                if (kinematics) {
+                    for (let [key, value] of kinematics) {
+                        const sameX = Math.abs(value.position.x - rand[0]) < 0.1;
+                        const sameY = Math.abs(value.position.y - rand[1]) < 0.1;
+                        if (sameX && sameY) {
+                            collisions++;
+                            spaceInUse = true;
+                        }
+                    }
+                }
+            } while (spaceInUse && collisions < 3);
+            // check if space already in use
+
+            if (collisions < 3) {
+                createOnGrid(foodFactory, Vec(
+                    ...rand
+                ));
+            }
         }
 
         const createXRandomFood = (x) => {
-            Array.from(Array(x)).forEach(() => {
+            for (let i = 0; i < x; i++) {
                 createRandomFood();
-            });
+            }
         }
 
-        createXRandomFood(130);
+        createXRandomFood(300);
         this.interval = setInterval(() => {
-            createXRandomFood(130)
-        }, 2250);
+            createXRandomFood(100)
+        }, 1000);
 
-        new WallFactory(EntityManagerService).create(new Vector2(-1, 3));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, 1));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, 0));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, -1));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, -2));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, -3));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, -5));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, -6));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, -7));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, -8));
-        new WallFactory(EntityManagerService).create(new Vector2(-1, -9));
-        new WallFactory(EntityManagerService).create(new Vector2(0, -9));
-        new WallFactory(EntityManagerService).create(new Vector2(1, -9));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
-        new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        wallFactory.create(new Vector2(-1, 3));
+        wallFactory.create(new Vector2(-1, 1));
+        wallFactory.create(new Vector2(-1, 0));
+        wallFactory.create(new Vector2(-1, -1));
+        wallFactory.create(new Vector2(-1, -2));
+        wallFactory.create(new Vector2(-1, -3));
+        wallFactory.create(new Vector2(-1, -5));
+        wallFactory.create(new Vector2(-1, -6));
+        wallFactory.create(new Vector2(-1, -7));
+        wallFactory.create(new Vector2(-1, -8));
+        wallFactory.create(new Vector2(-1, -9));
+        wallFactory.create(new Vector2(0, -9));
+        wallFactory.create(new Vector2(-1, -9));
+        wallFactory.create(new Vector2(-2, 0));
+        wallFactory.create(new Vector2(-3, -1));
+        wallFactory.create(new Vector2(-4, -3));
+        wallFactory.create(new Vector2(-5, -2));
+        wallFactory.create(new Vector2(5, -2));
+        wallFactory.create(new Vector2(4, -2));
+        wallFactory.create(new Vector2(3, -2));
+        wallFactory.create(new Vector2(2, -2));
+        wallFactory.create(new Vector2(2, -1));
+        wallFactory.create(new Vector2(2, -0));
+        wallFactory.create(new Vector2(2, 1));
+        wallFactory.create(new Vector2(2, 2));
+        wallFactory.create(new Vector2(2, 3));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        wretchFactory.create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
+        // new WretchFactory(EntityManagerService).create(Vec(-1, 0));
 
         this.systems = [
             new AnimateDilspriteSystem(EntityManagerService),
@@ -105,6 +170,7 @@ export default class DemoWretch extends React.Component {
     }
 
     componentWillUnmount() {
+        console.log("unmount")
         clearInterval(this.interval);
     }
 

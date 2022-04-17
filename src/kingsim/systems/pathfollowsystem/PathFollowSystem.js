@@ -13,6 +13,7 @@ export default class PathFollowSystem extends System {
         // -    if entity.arriveTarget === null
         // -        entity.path = null
         const pathComps = this._entityManager.getComponents('path');
+        if (!pathComps) return;
         pathComps.forEach(pathComp => {
             if (pathComp.path === null) {
 

@@ -9,6 +9,7 @@ export default class QuerySystem extends System {
 
     systemTick(timeDelta) {
         const queryComps = this._entityManager.getComponents('query');
+        if (!queryComps) return;
         queryComps.forEach(queryComp => {
             if (queryComp.queryRequest) {
                 queryComp.queryResult = QueryExecutor(queryComp.queryRequest, this._entityManager);

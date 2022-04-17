@@ -24,7 +24,11 @@ export default class EntityDebugger extends React.Component {
     }
 
     vector2ToString = (vector2) => {
-        return <div>[{vector2.x.toFixed(2)},{vector2.y.toFixed(2)}]</div>
+        return (
+            <div>
+                [{vector2.x.toFixed(2)},{vector2.y.toFixed(2)}]
+            </div>
+        )
     }
 
     renderComponentEntries = (type, componentMap) => {
@@ -42,12 +46,28 @@ export default class EntityDebugger extends React.Component {
             } else if (type === "grid-position") {
                 ret.push(this.vector2ToString(component.gridPosition))
             } else if (type === "path") {
-                component.path !== null && ret.push(component.path.map(pt => this.vector2ToString(pt)))
+                if (component.path !== null) {
+                    ret.push(
+                        <>
+                            [
+                            {component.path.map(pt => {
+                                return (
+                                    <div>{pt.x.toFixed(2)},{pt.y.toFixed(2)}</div>
+                                );
+                            })}
+                            ]
+                        </>
+                    )
+                }
             } else if (type === "path-find") {
                 ret.push(component.from)
                 ret.push(component.to)
             } else if (type === "arrive-target") {
-                ret.push(component.targetId)
+                ret.push(
+                    <div className='arrive-target'>
+                        {component.targetId}
+                    </div>
+                )
             } else if (type === "query") {
                 component.queryResult && ret.push(component.queryResult.distance)
             } else if (type === "steering") {
@@ -62,7 +82,7 @@ export default class EntityDebugger extends React.Component {
         return entries.map(subMapArray => {
             return (
                 <div className="entries">
-                    {subMapArray[0]}
+                    Component: {subMapArray[0]}
                     <div className="sub-entry">
                         {this.renderComponentEntries(subMapArray[0], subMapArray[1])}
                     </div>
