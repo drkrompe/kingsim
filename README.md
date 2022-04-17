@@ -1,3 +1,5 @@
+![kingsim view](_images/kingsim.png)
+
 # Kingsim
 
 Browser based kingdom simulation.
